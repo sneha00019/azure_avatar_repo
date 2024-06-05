@@ -1,0 +1,23 @@
+{
+  "AzureSpeechResource": {
+    "Region": "eastus",
+    "SubscriptionKey": "" 
+  },
+  "ICEServer": {
+    "URL": "turn:relay.communication.microsoft.com:3478",
+    "Username": "",
+    "Credential": ""
+  },
+  "TTSConfiguration": {
+    "Voice": "en-US-JennyNeural",
+    "CustomVoiceEndpointId": ""
+  },
+  "AvatarConfiguration": {
+    "Character": "lisa",
+    "Style": "casual-sitting",
+    "BackgroundColor": "#FFFFFFFF",
+    "CustomAvatar": false,
+    "TransparentBackground": true,
+    "VideoCrop": false
+  }
+}

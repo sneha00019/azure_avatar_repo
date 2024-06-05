@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Talking Avatar Service Demo</title>
+    <link href="./css/styles.css" rel="stylesheet">
+</head>
+
+<body style="background-image: url('background.png'); background-repeat: no-repeat; background-size: cover;">
+
+    <div class="box">
+        <div>
+            <video id="videoElement" autoplay></video>
+        </div>
+    </div>
+
+
+    <!-- This is the centered-container div that will hold the avatar video and center it at the top -->
+
+
+
+
+    <!-- Container for buttons, centered underneath the avatar -->
+    <div class="buttons-container">
+        <button id="startSession" onclick="window.startSession()">Connect with your AI Interviewer</button>
+        <button id="voice-typing-button" style="display: none;">Voice Typing</button>
+        <button class="btn start-rec">Start Recording</button>
+        <button class="btn stop-rec" disabled>Stop Recording</button>
+        <button id="getOpenAIResponse" onclick="speakAndFetchResponse()" style="display: none;">Let's Chat</button>
+    </div>
+
+    <!-- Container for the OpenAI query input -->
+    <div class="input-container">
+        <textarea id="openAIQuery" class="input-style" onfocus="clearDefaultText(this)"
+            placeholder='Click on "Start Recording" to Initiate Interview'></textarea>
+    </div>
+
+    <!-- Section to display OpenAI's response -->
+    <div class="response-container" style="display: none;">
+        <div id="openAIResponse" class="response-style"></div>
+    </div>
+
+
+    <div class="logging-container" style="padding-top: 10px; padding-bottom: 10px;">
+        <div id="logging"></div>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="centered-container">
+        <div id="videoContainer" style="position: relative; width: 500px;">
+            <div id="overlayArea" style="position: absolute;" hidden="hidden">
+                <p id="overlayText" style="font-size: large;">Live Video</p>
+            </div>
+            <div id="remoteVideo" style="border-radius: 50%;">
+                <video autoplay playsinline>
+                    <!-- Your video source here -->
+                </video>
+            </div>
+            <canvas id="canvas" width="1920" height="1080" style="background-color: transparent;"
+                hidden="hidden"></canvas>
+            <canvas id="tmpCanvas" width="1920" height="1080" hidden="hidden"></canvas>
+        </div>
+    </div>
+
+
+    <script>
+        // Adjusted function to use new input fields
+        function handleOpenAIQuery() {
+            const userQuery = document.getElementById('openAIQuery').value;
+
+            // Call the OpenAI API with the user's query
+            fetchOpenAIResponse(userQuery)
+                .then((response) => {
+                    // Display the OpenAI response
+                    const openAIResponseElement = document.getElementById('openAIResponse');
+                    openAIResponseElement.innerText = response;
+                })
+                .catch((error) => {
+                    console.error('Error fetching OpenAI response:', error);
+                });
+        }
+    </script>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const startButton = document.querySelector('.start-rec');
+            const stopButton = document.querySelector('.stop-rec');
+            const getOpenAIResponse = document.getElementById('getOpenAIResponse');
+            const openAIQuery = document.getElementById('openAIQuery');
+            let recognition;
+
+            // Function to start recording
+            function startRecording() {
+                startButton.disabled = true; // Disable start button
+                stopButton.disabled = false; // Enable stop button
+
+                recognition = new webkitSpeechRecognition(); // Chrome uses webkitSpeechRecognition
+                recognition.lang = 'en-US';
+                recognition.continuous = true;
+
+                recognition.onresult = function (event) {
+                    const transcript = event.results[event.results.length - 1][0].transcript;
+                    openAIQuery.value += transcript;
+                };
+
+                recognition.onerror = function (event) {
+                    console.error('Speech recognition error:', event.error);
+                };
+
+                recognition.start();
+            }
+
+            // Function to stop recording and trigger value button
+            function stopRecording() {
+                if (recognition) {
+                    recognition.stop();
+                    startButton.disabled = false; // Re-enable start button
+                    stopButton.disabled = true; // Disable stop button
+                    getOpenAIResponse.click(); // Trigger value button
+                }
+            }
+
+            // Event listeners for buttons
+            startButton.addEventListener('click', startRecording);
+            stopButton.addEventListener('click', stopRecording);
+
+            // Event listener for value button
+            getOpenAIResponse.addEventListener('click', () => {
+                console.log("Value button clicked!"); // Log message to console
+            });
+        });
+
+    </script>
+
+
+    <!-- <script>
+  // Function to convert URLs in text to clickable links
+  function linkify(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function(url) {
+      return `<a href="${url}" target="_blank">${url}</a>`; // This opens links in a new tab
+    });
+  }
+
+  if ('webkitSpeechRecognition' in window) {
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true; // Set to true to continue recognition after pauses
+  recognition.interimResults = true; // Show interim results
+  recognition.lang = 'en-US'; // Set the language of the recognition
+
+  var final_transcript = ''; // Variable to store the final transcript
+
+  // What to do when speech is detected
+  recognition.onresult = function(event) {
+    for (var i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript + ' '; // Append the new result with a space
+      }
+    }
+    // Update the openAIQuery textarea with the result
+    document.getElementById('openAIQuery').value = final_transcript;
+  };
+
+  // Start the speech recognition when the button is clicked
+  document.getElementById('voice-typing-button').addEventListener('click', function() {
+    final_transcript = ''; // Reset transcript when starting new recognition
+    recognition.start();
+  });
+} else {
+  alert("Web Speech API is not supported in this browser.");
+} -->
+
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const videoElement = document.getElementById('videoElement');
+
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        videoElement.srcObject = stream;
+                    })
+                    .catch(function (error) {
+                        console.log("Something went wrong with accessing the camera stream:", error);
+                    });
+            } else {
+                alert("getUserMedia not supported in this browser.");
+            }
+        });
+    </script>
+
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script src="./js/basic.js"></script>
+
+</body>
+
+</html>
